@@ -1,7 +1,8 @@
 const policy = require('./rules/policy.json').commit;
+const {message} = require('./scripts/messages.cjs');
 
 function description(subject = '') {
-  return subject.replace(/(?: \[[^\]\r\n]+\])?(?: \(#[A-Za-z0-9._/-]+\))?$/u, '');
+  return (subject ?? '').replace(/(?: \[[^\]\r\n]+\])?(?: \(#[A-Za-z0-9._/-]+\))?$/u, '');
 }
 
 module.exports = {
@@ -12,11 +13,11 @@ module.exports = {
     rules: {
       'policy-single-line': ({raw = ''}) => [
         !policy.singleLine || !/[\r\n]/u.test(raw.trimEnd()),
-        '提交说明只允许单行，不允许正文或脚注'
+        message('commit.single-line')
       ],
       'policy-header-format': ({header = ''}) => [
         /^[a-z]+: \S.*$/u.test(header),
-        '格式必须为 <类型>: <简述>，可追加 [模块] 和 (#任务号)'
+        message('commit.header-format')
       ],
       'policy-subject': ({subject = ''}) => {
         const value = description(subject);
@@ -26,9 +27,9 @@ module.exports = {
         const letters = policy.subject.allowAsciiLetters || !/[a-z]/iu.test(value);
         const emoji = policy.subject.allowEmoji || !/[\p{Extended_Pictographic}\p{Regional_Indicator}\u20e3]/u.test(subject);
         const reasons = [];
-        if (!chinese) reasons.push(`中文简述须含 ${policy.subject.minChineseCharacters} 到 ${policy.subject.maxChineseCharacters} 个汉字，当前为 ${count} 个`);
-        if (!letters) reasons.push('简述不能包含英文字母，英文标识请放在 [模块] 或 (#任务号) 中');
-        if (!emoji) reasons.push('提交说明不能包含表情，请删除表情');
+        if (!chinese) reasons.push(message('commit.subject-chinese-length', {count}));
+        if (!letters) reasons.push(message('commit.subject-ascii-letters'));
+        if (!emoji) reasons.push(message('commit.subject-emoji'));
         return [chinese && letters && emoji, reasons.join('；')];
       }
     }

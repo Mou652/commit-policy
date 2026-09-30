@@ -1,0 +1,41 @@
+{
+  "messages": {
+    "ui.success": "[提交检查] 提交说明检查通过",
+    "ui.blocked": "[提交检查] 已阻止本次提交",
+    "ui.reasons": "违规原因:",
+    "ui.format": "修改格式: <类型>: <中文简述>，可追加 [模块] 和 (#任务号)",
+    "ui.example": "合法示例: fix: 修复重复请求以避免产生重复记录",
+    "ui.retry": "修改提交说明后重新提交，本次提交没有完成",
+    "commitlint.type-empty": "提交类型不能为空，请填写 feat、fix 等类型",
+    "commitlint.type-case": "提交类型必须使用小写字母",
+    "commitlint.type-enum": "提交类型不符合规范，允许的类型: {{commit.types}}",
+    "commitlint.subject-empty": "提交简述不能为空，请说明本次修改的内容和原因",
+    "commitlint.subject-full-stop": "提交主题不能以英文句号结尾，请删除末尾的 .",
+    "commitlint.header-max-length": "整条提交说明不能超过 {{commit.headerMaxLength}} 个字符，请缩短说明或模块标识",
+    "commitlint.header-trim": "提交标题首尾不能有多余空白，请删除开头或末尾的空格",
+    "commitlint.body-leading-blank": "正文与标题之间需要空行；当前规则只允许单行，请删除正文",
+    "commitlint.body-max-line-length": "正文单行过长；当前规则只允许单行，请删除正文",
+    "commitlint.footer-leading-blank": "脚注与正文之间需要空行；当前规则只允许单行，请删除脚注",
+    "commitlint.footer-max-line-length": "脚注单行过长；当前规则只允许单行，请删除脚注",
+    "commitlint.empty-rules": "未加载到提交规则，请重新运行接入命令",
+    "commit.single-line": "提交说明只允许单行，不允许正文或脚注",
+    "commit.header-format": "格式必须为 <类型>: <简述>，可追加 [模块] 和 (#任务号)",
+    "commit.subject-chinese-length": "中文简述须含 {{commit.subject.minChineseCharacters}} 到 {{commit.subject.maxChineseCharacters}} 个汉字，当前为 {{count}} 个",
+    "commit.subject-ascii-letters": "简述不能包含英文字母，英文标识请放在 [模块] 或 (#任务号) 中",
+    "commit.subject-emoji": "提交说明不能包含表情，请删除表情",
+    "commit.empty-message": "提交说明不能为空",
+    "staged.unnamed-branch": "请在命名分支上提交；当前无法确定提交分支",
+    "staged.forbidden-branch": "禁止在 {{branch}} 分支直接提交，请切换开发分支",
+    "staged.git-check-failed": "暂存区检查未通过，请修改对应文件后重新暂存",
+    "staged.system-file": "禁止提交本机系统文件",
+    "staged.java-console": "生产代码使用日志框架，禁止控制台调试输出或 printStackTrace",
+    "staged.java-swagger2": "禁止新增 Swagger2 注解 import，使用 OpenAPI3",
+    "staged.success": "[commit-policy] 暂存区检查通过 ({{count}} 个文件)"
+  },
+  "git": {
+    "trailing whitespace": "行尾存在多余空白，请清理后重新暂存",
+    "space before tab in indent": "缩进中存在制表符前的多余空格，请整理后重新暂存",
+    "new blank line at EOF": "文件末尾新增了多余空行，请删除后重新暂存",
+    "leftover conflict marker": "存在未解决的合并冲突标记，请解决冲突后重新暂存"
+  }
+}

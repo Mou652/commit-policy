@@ -68,6 +68,32 @@ feat: 增加请求去重以避免重复处理 [common-core] (#TASK-12)
 
 中文提交规范是本仓库的初始团队约定，不是 Conventional Commits 的通用要求。需要允许英文时，修改 `subject.requireChinese` 和 `subject.allowAsciiLetters`；支持的提交类型与长度也在同一文件配置。
 
+## 怎样扩展规则与中文提示
+
+校验参数和提示文案分别维护：
+
+| 要改什么 | 修改位置 |
+| --- | --- |
+| 字数、允许类型、禁止分支等既有参数 | `rules/policy.json` |
+| 中文原因、修复建议、输出标题与 Git 诊断翻译 | `rules/messages.zh-CN.json` |
+| 新的提交说明校验逻辑及其启用配置 | `commitlint.config.cjs` 的本地插件与 `rules` |
+| 新的暂存区校验逻辑 | `scripts/check.mjs` |
+| 证明新规则及其提示有效的测试 | `tests/policy.test.mjs` |
+
+文案通过参数占位符读取规则配置，例如：
+
+```json
+"commit.subject-chinese-length": "中文简述须含 {{commit.subject.minChineseCharacters}} 到 {{commit.subject.maxChineseCharacters}} 个汉字，当前为 {{count}} 个"
+```
+
+规则调用 `message('commit.subject-chinese-length', {count})` 生成诊断。改字数范围只需修改 `policy.json`，提示自动使用新范围。缺少文案或模板参数会报告配置错误，避免生成含糊或错误的提示。
+
+新的自定义 commitlint 规则按照官方插件接口返回 `[是否通过, 中文原因]`，原因可通过 `message()` 读取文案模板，也可以由复用的插件直接提供。统一格式化器直接显示该原因，无需为每条自定义规则增加翻译映射。
+
+复用英文提示的 commitlint 内置规则时，在文案文件增加 `commitlint.<规则名>` 条目，按稳定规则名选取中文提示；不匹配英文句子的全文。Git 原生诊断在同一文件的 `git` 节点维护。未知的第三方原因保留原文。
+
+这套方式复用 commitlint 的校验和插件机制，不添加新的规则执行框架或翻译依赖。新的判断逻辑仍需实现和测试，不能仅靠添加中文文案形成拦截。
+
 ## 规则怎样更新
 
 业务仓库保存：

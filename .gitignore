@@ -1,4 +1,5 @@
 node_modules/
+.idea/
 lefthook-local.yml
 .DS_Store
 *.log

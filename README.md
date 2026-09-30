@@ -6,7 +6,7 @@
 
 ## 快速接入
 
-需要已有的 Git、Node.js >= 22.12.0、npm，以及访问 GitHub 和 npm 下载源的网络。macOS、Linux 和 Windows Git Bash 可运行接入命令；首版在 macOS 验证。
+需要已有的 Git、Node.js >= 22.12.0、npm，以及访问 GitHub 和 npm 下载源的网络。首版在 macOS 验证；Linux 与 Windows 尚未完成平台验证。
 
 在业务仓库目录执行一次：
 
@@ -66,7 +66,9 @@ remotes:
     refetch_frequency: always
 ```
 
-你修改规则并推送 `main`，同事后续执行 Hook 时 Lefthook 自动刷新远程仓库。既有检查的配置和脚本更新无需重新安装；依赖锁文件变化时检查脚本自动安装匹配版本。工具下载或校验器启动失败会中止检查。
+你修改规则并推送 `main`，同事后续执行 Hook 时 Lefthook 自动刷新远程仓库。既有检查的配置和脚本更新无需重新安装；依赖锁文件变化时检查脚本自动安装匹配版本的 commitlint 及其依赖。工具下载或校验器启动失败会中止检查。
+
+Lefthook 执行器使用首次接入时安装的版本，升级执行器需要重新执行接入命令。这与规则自动刷新是两个更新过程。
 
 `always` 会在每次 Hook 执行时访问 GitHub，也会增加网络等待。可改为 `30m` 或 `24h`，届时规则按间隔更新。新增 Hook 类型、切换规则仓库或接入脚本的本地启动逻辑变化，需要重新执行接入命令。
 
@@ -89,7 +91,7 @@ npm test
 
 测试使用一次性临时 Git 仓库，只操作临时暂存区、直接调用检查器，不创建真实提交。修改版本时同时更新 `package.json` 和 `package-lock.json`，验证通过后再发布。
 
-公开仓库只保存通用规则与脚本。接入不向 GitHub上传业务代码，业务仓库自身的 origin、GitLab 权限和 Maven 配置不作修改。
+公开仓库只保存通用规则与脚本。接入不向 GitHub 上传业务代码，业务仓库自身的 origin、GitLab 权限和 Maven 配置不作修改。
 
 ## 上游与许可证
 

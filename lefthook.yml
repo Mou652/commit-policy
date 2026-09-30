@@ -1,0 +1,11 @@
+source_dir: .lefthook
+
+pre-commit:
+  scripts:
+    "check-staged.sh":
+      runner: sh
+
+commit-msg:
+  scripts:
+    "check-message.sh":
+      runner: sh

@@ -1,0 +1,24 @@
+{
+  "commit": {
+    "types": ["feat", "fix", "refactor", "perf", "docs", "test", "chore", "build", "ci", "revert"],
+    "singleLine": true,
+    "headerMaxLength": 100,
+    "subject": {
+      "requireChinese": true,
+      "minChineseCharacters": 10,
+      "maxChineseCharacters": 30,
+      "allowAsciiLetters": false,
+      "allowEmoji": false
+    }
+  },
+  "staged": {
+    "forbiddenBranches": ["test"],
+    "checkWhitespaceAndConflicts": true,
+    "forbiddenFileNames": [".DS_Store", "Thumbs.db"],
+    "java": {
+      "rejectConsoleDebugCalls": true,
+      "rejectSwagger2Imports": true,
+      "excludeTestSources": true
+    }
+  }
+}

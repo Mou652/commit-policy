@@ -6,6 +6,7 @@ function description(subject = '') {
 
 module.exports = {
   extends: ['@commitlint/config-conventional'],
+  formatter: require.resolve('./scripts/format-zh.cjs'),
   defaultIgnores: false,
   plugins: [{
     rules: {
@@ -24,8 +25,11 @@ module.exports = {
           (count >= policy.subject.minChineseCharacters && count <= policy.subject.maxChineseCharacters);
         const letters = policy.subject.allowAsciiLetters || !/[a-z]/iu.test(value);
         const emoji = policy.subject.allowEmoji || !/[\p{Extended_Pictographic}\p{Regional_Indicator}\u20e3]/u.test(subject);
-        return [chinese && letters && emoji,
-          `简述须含 ${policy.subject.minChineseCharacters} 到 ${policy.subject.maxChineseCharacters} 个汉字，英文仅允许出现在模块或任务标识中，禁止表情`];
+        const reasons = [];
+        if (!chinese) reasons.push(`中文简述须含 ${policy.subject.minChineseCharacters} 到 ${policy.subject.maxChineseCharacters} 个汉字，当前为 ${count} 个`);
+        if (!letters) reasons.push('简述不能包含英文字母，英文标识请放在 [模块] 或 (#任务号) 中');
+        if (!emoji) reasons.push('提交说明不能包含表情，请删除表情');
+        return [chinese && letters && emoji, reasons.join('；')];
       }
     }
   }],

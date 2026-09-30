@@ -4,12 +4,15 @@ import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {spawnSync} from 'node:child_process';
 import {test} from 'node:test';
+import {createRequire} from 'node:module';
 import {checkStaged} from '../scripts/check.mjs';
+import {translateGitCheck} from '../scripts/diagnostics.mjs';
 import {nodeEnv, policyRoot, run} from '../scripts/runtime.mjs';
 
 const cli = join(policyRoot, 'node_modules/@commitlint/cli/cli.js');
 const lint = message => spawnSync(process.execPath, [cli, '--config', join(policyRoot, 'commitlint.config.cjs'), '--strict'], {input: message, encoding: 'utf8', env: nodeEnv});
 const valid = 'fix: 修复重复请求以避免产生重复记录';
+const formatChinese = createRequire(import.meta.url)('../scripts/format-zh.cjs');
 
 test('提交规范: 合法中文、模块任务标识和末尾换行通过', () => {
   for (const message of [valid, `${valid} [common-core] (#TASK-12)`, `${valid}\n`, `docs: ${'中'.repeat(10)}`, `docs: ${'中'.repeat(30)}`]) {
@@ -22,6 +25,51 @@ test('提交规范: 错误类型、正文、英文、表情、长度和默认 me
   for (const message of ['', `style: ${'中'.repeat(12)}`, `${valid}\n\n正文说明`, 'fix: 修复重复请求以避免API重复调用', `${valid} 😀`, 'fix: 修复问题', `docs: ${'中'.repeat(31)}`, `feat(core): ${'中'.repeat(12)}`, "Merge branch 'feature'", `fix:${'中'.repeat(12)}`]) {
     assert.notEqual(lint(message).status, 0, message);
   }
+});
+
+test('中文提示: 基础规则和自定义规则显示修改建议，错误退出码保持为 3', () => {
+  const cases = [
+    [`style: ${'中'.repeat(12)}`, /允许的类型/u],
+    ['fix: 修复问题', /当前为 4 个/u],
+    ['fix: 修复重复请求以避免API重复调用', /简述不能包含英文字母/u],
+    [`${valid} 😀`, /不能包含表情/u],
+    [`${valid}.`, /英文句号/u],
+    [`${valid} [${'module'.repeat(20)}]`, /不能超过 100/u]
+  ];
+  for (const [message, expected] of cases) {
+    const result = lint(message);
+    assert.equal(result.status, 3, result.stdout + result.stderr);
+    assert.match(result.stdout, /已阻止本次提交/u);
+    assert.match(result.stdout, expected);
+    assert.match(result.stdout, /合法示例/u);
+    assert.doesNotMatch(result.stdout, /found .* problems|subject must|type must/u);
+  }
+  assert.match(lint(valid).stdout, /提交说明检查通过/u);
+});
+
+test('中文提示: 保留警告和未知规则原因，不丢失诊断', () => {
+  const output = formatChinese({results: [{errors: [{name: 'future-rule', message: '保留新规则的原始原因'}], warnings: [{name: 'type-case', message: 'type must be lower-case'}]}]});
+  assert.match(output, /保留新规则的原始原因/u);
+  assert.match(output, /必须使用小写字母/u);
+});
+
+test('中文提示: Git 错误保留文件行号和无法翻译的原始诊断', () => {
+  const output = translateGitCheck('path:with space.txt:12: trailing whitespace.\nother.txt:7: leftover conflict marker\nfatal: original diagnostic\n');
+  assert.match(output, /path:with space.txt:12: 行尾存在多余空白/u);
+  assert.match(output, /other.txt:7: 存在未解决/u);
+  assert.match(output, /fatal: original diagnostic/u);
+});
+
+test('中文提示: 空提交说明直接给出中文原因，没有真实提交', () => {
+  const directory = mkdtempSync(join(tmpdir(), 'commit-policy-message-'));
+  try {
+    const file = join(directory, 'message.txt');
+    writeFileSync(file, '\n');
+    const result = spawnSync(process.execPath, [join(policyRoot, 'scripts/check.mjs'), 'commit-msg', file], {encoding: 'utf8', env: nodeEnv});
+    assert.equal(result.status, 1);
+    assert.match(result.stderr, /提交说明不能为空/u);
+    assert.match(result.stderr, /合法示例/u);
+  } finally { rmSync(directory, {recursive: true, force: true}); }
 });
 
 function repository() {
@@ -50,8 +98,8 @@ test('暂存区快照: 未暂存的工作区内容不影响检查，无真实提
 
 test('暂存区: 空白、冲突标记、系统文件、旧注解和调试输出拒绝', () => {
   const cases = [
-    ['sample.txt', 'line  \n', /执行失败/u],
-    ['sample.txt', '<<<<<<< HEAD\nleft\n=======\nright\n>>>>>>> other\n', /执行失败/u],
+    ['sample.txt', 'line  \n', /行尾存在多余空白/u],
+    ['sample.txt', '<<<<<<< HEAD\nleft\n=======\nright\n>>>>>>> other\n', /未解决的合并冲突/u],
     ['folder/.DS_Store', 'dummy\n', /系统文件/u],
     ['src/main/java/Example.java', 'import io.swagger.annotations.Api;\n', /Swagger2/u],
     ['src/main/java/Example.java', 'exception.printStackTrace();\n', /printStackTrace/u]

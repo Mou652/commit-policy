@@ -16,6 +16,9 @@
     "checkWhitespaceAndConflicts": true,
     "forbiddenFileNames": [".DS_Store", "Thumbs.db"],
     "java": {
+      "enabled": true,
+      "sourceVersion": "21",
+      "excludeDirectories": ["target", "build", "generated-sources"],
       "rejectConsoleDebugCalls": true,
       "rejectSwagger2Imports": true,
       "excludeTestSources": true

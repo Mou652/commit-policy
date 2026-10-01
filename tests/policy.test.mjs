@@ -137,9 +137,9 @@ test('暂存区快照: 未暂存的工作区内容不影响检查，无真实提
     stage(cwd, 'src/main/java/Example.java', 'class Example {}\n');
     writeFileSync(join(cwd, 'src/main/java/Example.java'), 'System.out.println("worktree only");\n');
     checkStaged(cwd);
-    stage(cwd, 'src/main/java/Example.java', 'System.out.println("staged");\n');
+    stage(cwd, 'src/main/java/Example.java', 'class Example { void output() { System.out.println("staged"); } }\n');
     writeFileSync(join(cwd, 'src/main/java/Example.java'), 'class Example {}\n');
-    assert.throws(() => checkStaged(cwd), /控制台/u);
+    assert.throws(() => checkStaged(cwd), /System\.out/u);
   } finally { rmSync(cwd, {recursive: true, force: true}); }
 });
 
@@ -148,8 +148,8 @@ test('暂存区: 空白、冲突标记、系统文件、旧注解和调试输出
     ['sample.txt', 'line  \n', /行尾存在多余空白/u],
     ['sample.txt', '<<<<<<< HEAD\nleft\n=======\nright\n>>>>>>> other\n', /未解决的合并冲突/u],
     ['folder/.DS_Store', 'dummy\n', /系统文件/u],
-    ['src/main/java/Example.java', 'import io.swagger.annotations.Api;\n', /Swagger2/u],
-    ['src/main/java/Example.java', 'exception.printStackTrace();\n', /printStackTrace/u]
+    ['src/main/java/Example.java', 'import io.swagger.annotations.Api;\n@Api class Example {}\n', /Swagger2/u],
+    ['src/main/java/Example.java', 'class Example { void log(Exception failure) { failure.printStackTrace(); } }\n', /printStackTrace/u]
   ];
   for (const [file, content, expected] of cases) {
     const cwd = repository();

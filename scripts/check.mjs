@@ -5,6 +5,7 @@ import {spawnSync} from 'node:child_process';
 import {ensureDependencies, nodeEnv, policyRoot, requireNode, run} from './runtime.mjs';
 import {translateGitCheck} from './diagnostics.mjs';
 import {message} from './messages.cjs';
+import {checkJava, formatJavaReport} from './java-check.mjs';
 
 export function addedJavaViolations(diff, rules) {
   const violations = [];
@@ -47,11 +48,15 @@ export function checkStaged(cwd = process.cwd()) {
   const failures = [];
   for (const file of files) {
     if (policy.forbiddenFileNames.includes(basename(file))) failures.push(`${file}: ${message('staged.system-file')}`);
-    if (!file.endsWith('.java') || (policy.java.excludeTestSources && /(?:^|\/)src\/test\//u.test(file))) continue;
+    if (policy.java.enabled !== false || !file.endsWith('.java') || (policy.java.excludeTestSources && /(?:^|\/)src\/test\//u.test(file))) continue;
+    if ((policy.java.excludeDirectories || []).some(part => file.split('/').includes(part))) continue;
     const diff = git(['diff', '--cached', '--no-ext-diff', '--no-color', '--unified=0', '--', file]);
     for (const violation of addedJavaViolations(diff, policy.java)) failures.push(`${file}:${violation.line}: ${violation.rule}`);
   }
   if (failures.length) throw new Error(failures.join('\n'));
+  const java = checkJava(cwd);
+  if (java.errors.length) throw new Error(formatJavaReport(java));
+  if (java.warnings.length) console.warn(formatJavaReport(java));
   console.log(message('staged.success', {count: files.length}));
 }
 

@@ -2,6 +2,7 @@ import {existsSync, mkdirSync, readFileSync, writeFileSync} from 'node:fs';
 import {dirname, join, resolve} from 'node:path';
 import {spawnSync} from 'node:child_process';
 import {ensureDependencies, nodeEnv, policyRoot, requireNode, run} from './runtime.mjs';
+import {ensureJavaTools} from './java-tools.mjs';
 
 const repository = 'https://github.com/Mou652/commit-policy.git';
 const config = `# Shared policy: https://github.com/Mou652/commit-policy\nremotes:\n  - git_url: ${repository}\n    ref: main\n    configs:\n      - lefthook.yml\n    refetch_frequency: always\n`;
@@ -26,6 +27,7 @@ try {
     if (existsSync(file) && !readFileSync(file, 'utf8').includes('LEFTHOOK')) throw new Error(`已有 ${hook} Hook，本脚本不会覆盖`);
   }
   const {lefthook} = ensureDependencies();
+  if (git(['ls-files', '-z', '--', '*.java'])) ensureJavaTools();
   const stateDir = gitPath('commit-policy');
   mkdirSync(stateDir, {recursive: true});
   const rc = join(stateDir, 'env.sh');
